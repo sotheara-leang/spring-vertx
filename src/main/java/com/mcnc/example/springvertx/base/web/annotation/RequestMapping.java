@@ -24,9 +24,9 @@ public @interface RequestMapping {
 	
 	String[] headers() default {};
 	
-	String[] consumes() default {"text/html"};
+	String[] consumes() default {};
 	
-	String[] produces() default {"text/html"};
+	String[] produces() default {"text/plain"};
 	
 	boolean bocking() default false;
 }

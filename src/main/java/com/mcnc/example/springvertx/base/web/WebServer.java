@@ -18,6 +18,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
 /**
@@ -37,7 +38,7 @@ public class WebServer extends AbstractVerticle {
 	public void start() throws Exception {
 		// Initialize Static handler
 		logger.debug(">>> Initialize static handler <<<");
-		initStaticHandler();
+		//initStaticHandler();
 		
 		// Initialize Controller handler
 		logger.debug(">>> Initialize controller mapping <<<");
@@ -58,6 +59,7 @@ public class WebServer extends AbstractVerticle {
 		for (String beanName : beanNames) {
 			Object verticle = appContext.getBean(beanName);
 			Class<?> clazz = verticle.getClass();
+			
 			ReflectionUtils.doWithMethods(clazz, new ReflectionUtils.MethodCallback() {
 
 				@Override
@@ -73,44 +75,51 @@ public class WebServer extends AbstractVerticle {
 									mappedPattern = "/" + mappedPattern;
 								}
 								
+								// Create route
+								Route route = mainRouter.route(mappedPattern);
+								
+								// Method mapping
 								HttpMethod[] httpMethods = requestMapping.method();
 								for (HttpMethod httpMethod : httpMethods) {
-									Route route = mainRouter.route(httpMethod, mappedPattern);
-									
-									// Consumes mapping
-									String[] consumes = requestMapping.consumes();
+									route.method(httpMethod);
+								}
+								
+								// Consumes mapping
+								String[] consumes = requestMapping.consumes();
+								if (consumes != null) {
 									for (String consume : consumes) {
 										route.consumes(consume);
 									}
-									
-									// Produce mapping
-									String[] produces = requestMapping.produces();
-									for (String produce : produces) {
-										route.produces(produce);
-									}
-									
-									// Blocking mapping
-									boolean blocking = requestMapping.bocking();
-									if (blocking) {
-										route.blockingHandler(routingContext -> {
-											try {
-												method.invoke(verticle, routingContext);
-											} catch (Exception e) {
-												logger.error(e.getMessage(), e);
-												routingContext.fail(e);
-											}
-										});
-									} else {
-										route.handler(routingContext -> {
-											try {
-												method.invoke(verticle, routingContext);
-											} catch (Exception e) {
-												logger.error(e.getMessage(), e);
-												routingContext.fail(e);
-											}
-										});
-									}
 								}
+								
+								// Produce mapping
+								String[] produces = requestMapping.produces();
+								for (String produce : produces) {
+									route.produces(produce);
+								}
+								
+								// Blocking mapping
+								boolean blocking = requestMapping.bocking();
+								if (blocking) {
+									route.blockingHandler(routingContext -> {
+										try {
+											method.invoke(verticle, routingContext);
+										} catch (Exception e) {
+											logger.error(e.getMessage(), e);
+											routingContext.fail(e);
+										}
+									});
+								} else {
+									route.handler(routingContext -> {
+										try {
+											method.invoke(verticle, routingContext);
+										} catch (Exception e) {
+											logger.error(e.getMessage(), e);
+											routingContext.fail(e);
+										}
+									});
+								}
+								
 							}
 						}
 					}
@@ -121,5 +130,6 @@ public class WebServer extends AbstractVerticle {
 	
 	public void initStaticHandler() {
 		mainRouter.route().handler(StaticHandler.create(AppContextHolder.getConfiguration("web.server.webapp")));
+		mainRouter.route().handler(BodyHandler.create());
 	}
 }
