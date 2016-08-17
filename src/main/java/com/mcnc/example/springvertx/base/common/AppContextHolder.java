@@ -15,9 +15,12 @@ public class AppContextHolder implements ApplicationContextAware {
 
 	private static ApplicationContext appContext;
 	
+	private static Properties configuration;
+	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		AppContextHolder.appContext = applicationContext;
+		appContext = applicationContext;
+		configuration = applicationContext.getBean("config", Properties.class);
 	}
 
 	public static ApplicationContext getAppContext() {
@@ -25,7 +28,6 @@ public class AppContextHolder implements ApplicationContextAware {
 	}	
 	
 	public static String getConfiguration(String key) {
-		Properties props = appContext.getBean("config", Properties.class);
-		return props.getProperty(key);
+		return configuration.getProperty(key);
 	}
 }

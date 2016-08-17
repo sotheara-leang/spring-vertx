@@ -9,11 +9,9 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<util:properties id="config" location="classpath:config/config.properties" />
-	
 	<context:annotation-config />
-
-	<context:component-scan base-package="com.mcnc.example.springvertx" />
+	
+	<util:properties id="config" location="classpath:config/config.properties" />
 
 	<bean id="vertx" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
 		p:targetClass="io.vertx.core.Vertx" p:targetMethod="vertx" />
@@ -27,5 +25,7 @@
 		</property>
 	</bean>
 
-	<bean class="com.mcnc.example.springvertx.base.common.AppContextHolder" />
+	<bean id="appContextHolder" class="com.mcnc.example.springvertx.base.common.AppContextHolder" />
+	
+	<context:component-scan base-package="com.mcnc.example.springvertx" />
 </beans>
