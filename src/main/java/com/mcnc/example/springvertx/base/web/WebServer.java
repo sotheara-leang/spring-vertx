@@ -18,7 +18,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
 /**
@@ -32,20 +31,20 @@ public class WebServer extends AbstractVerticle {
 	private static final Logger logger = LoggerFactory.getLogger(WebServer.class);
 	
 	@Autowired
-	private Router mainRouter;
+	private Router router;
 	
 	@Override
 	public void start() throws Exception {
-		// Initialize Static handler
-		logger.debug(">>> Initialize static handler <<<");
-		//initStaticHandler();
-		
 		// Initialize Controller handler
 		logger.debug(">>> Initialize controller mapping <<<");
 		initControllerMapping();
-		
+
+		// Initialize Static handler
+		logger.debug(">>> Initialize static handler <<<");
+		initStaticHandler();
+				
 		vertx.createHttpServer()
-			 .requestHandler(mainRouter::accept)
+			 .requestHandler(router::accept)
 			 .listen(Integer.valueOf(AppContextHolder.getConfiguration("web.server.port")));
 	}
 	
@@ -76,7 +75,7 @@ public class WebServer extends AbstractVerticle {
 								}
 								
 								// Create route
-								Route route = mainRouter.route(mappedPattern);
+								Route route = router.routeWithRegex(mappedPattern);
 								
 								// Method mapping
 								HttpMethod[] httpMethods = requestMapping.method();
@@ -129,7 +128,7 @@ public class WebServer extends AbstractVerticle {
 	};
 	
 	public void initStaticHandler() {
-		mainRouter.route().handler(StaticHandler.create(AppContextHolder.getConfiguration("web.server.webapp")));
-		mainRouter.route().handler(BodyHandler.create());
+		StaticHandler staticHandler = StaticHandler.create(AppContextHolder.getConfiguration("web.server.webroot")); 
+		router.route().handler(staticHandler);
 	}
 }
