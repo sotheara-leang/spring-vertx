@@ -29,4 +29,6 @@ public @interface RequestMapping {
 	String[] produces() default {"text/plain"};
 	
 	boolean bocking() default false;
+	
+	String view() default "";
 }

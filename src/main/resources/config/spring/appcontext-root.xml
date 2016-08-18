@@ -32,8 +32,25 @@
 		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
 		p:targetObject-ref="vertx" p:targetMethod="eventBus" />
 
+	<bean id="templateEngine"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
+		p:targetClass="io.vertx.ext.web.templ.ThymeleafTemplateEngine"
+		p:targetMethod="create" />
+
 	<bean id="appContextHolder"
 		class="com.mcnc.example.springvertx.base.common.AppContextHolder" />
+
+	<bean
+		class="com.mcnc.example.springvertx.base.web.handler.impl.ControllerHandler" />
+
+	<bean
+		class="com.mcnc.example.springvertx.base.web.handler.impl.ErrrorRequestHandler" />
+
+	<bean
+		class="com.mcnc.example.springvertx.base.web.handler.impl.StaticResourceHandler" />
+
+	<bean
+		class="com.mcnc.example.springvertx.base.web.handler.impl.TemplateRequestHandler" />
 
 	<context:component-scan base-package="com.mcnc.example.springvertx" />
 </beans>

@@ -21,7 +21,5 @@ public class AppBootstrap {
 		logger.debug(">>> Initialize Application Context <<<");
 		
 		appContext = new ClassPathXmlApplicationContext("classpath:config/spring/appcontext-root.xml");
-		
-		logger.debug(">>> Finish initializing Application Context <<<");
 	}
 }

@@ -1,24 +1,17 @@
 package com.mcnc.example.springvertx.base.web;
 
-import java.lang.reflect.Method;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ReflectionUtils;
 
 import com.mcnc.example.springvertx.base.common.AppContextHolder;
-import com.mcnc.example.springvertx.base.web.annotation.Controller;
-import com.mcnc.example.springvertx.base.web.annotation.RequestMapping;
+import com.mcnc.example.springvertx.base.web.handler.RequestHandler;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.StaticHandler;
 
 /**
  * 
@@ -33,102 +26,22 @@ public class WebServer extends AbstractVerticle {
 	@Autowired
 	private Router router;
 	
+	@Autowired
+	private List<RequestHandler> requestHandlers;
+	
 	@Override
 	public void start() throws Exception {
-		// Initialize Controller handler
-		logger.debug(">>> Initialize controller mapping <<<");
-		initControllerMapping();
-
-		// Initialize Static handler
-		logger.debug(">>> Initialize static handler <<<");
-		initStaticHandler();
+		// Initialize request handlers
+		if (requestHandlers != null) {
+			for (RequestHandler requestHandler : requestHandlers) {
+				logger.debug(String.format(">>> Initialize request handler: %s <<<", requestHandler.getClass()));
+				requestHandler.handle(router);
+			}
+		}
 				
 		vertx.createHttpServer()
 			 .requestHandler(router::accept)
 			 .listen(Integer.valueOf(AppContextHolder.getConfiguration("web.server.port")));
 	}
-	
-	/**
-	 * Initialize Controller Mapping
-	 */
-	public void initControllerMapping() {
-		ApplicationContext appContext = AppContextHolder.getAppContext();
-		String[] beanNames = appContext.getBeanNamesForAnnotation(Controller.class);
-		
-		for (String beanName : beanNames) {
-			Object verticle = appContext.getBean(beanName);
-			Class<?> clazz = verticle.getClass();
-			
-			ReflectionUtils.doWithMethods(clazz, new ReflectionUtils.MethodCallback() {
 
-				@Override
-				public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-					RequestMapping requestMapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
-					if (requestMapping != null) {
-						String[] mappedPatterns = requestMapping.value();
-						
-						if (mappedPatterns.length > 0) {
-							for (String mappedPattern : mappedPatterns) {
-								// URL mapping
-								if (!mappedPattern.startsWith("/")) {
-									mappedPattern = "/" + mappedPattern;
-								}
-								
-								// Create route
-								Route route = router.routeWithRegex(mappedPattern);
-								
-								// Method mapping
-								HttpMethod[] httpMethods = requestMapping.method();
-								for (HttpMethod httpMethod : httpMethods) {
-									route.method(httpMethod);
-								}
-								
-								// Consumes mapping
-								String[] consumes = requestMapping.consumes();
-								if (consumes != null) {
-									for (String consume : consumes) {
-										route.consumes(consume);
-									}
-								}
-								
-								// Produce mapping
-								String[] produces = requestMapping.produces();
-								for (String produce : produces) {
-									route.produces(produce);
-								}
-								
-								// Blocking mapping
-								boolean blocking = requestMapping.bocking();
-								if (blocking) {
-									route.blockingHandler(routingContext -> {
-										try {
-											method.invoke(verticle, routingContext);
-										} catch (Exception e) {
-											logger.error(e.getMessage(), e);
-											routingContext.fail(e);
-										}
-									});
-								} else {
-									route.handler(routingContext -> {
-										try {
-											method.invoke(verticle, routingContext);
-										} catch (Exception e) {
-											logger.error(e.getMessage(), e);
-											routingContext.fail(e);
-										}
-									});
-								}
-								
-							}
-						}
-					}
-				}
-			});
-		}
-	};
-	
-	public void initStaticHandler() {
-		StaticHandler staticHandler = StaticHandler.create(AppContextHolder.getConfiguration("web.server.webroot")); 
-		router.route().handler(staticHandler);
-	}
 }

@@ -8,8 +8,8 @@ import io.vertx.ext.web.RoutingContext;
 @Controller
 public class HomeController {
 
-	@RequestMapping(value = "/")
+	@RequestMapping(value = "/", view = "index")
 	public void getUser(RoutingContext context) {
-		 context.reroute("/views/index.html");
+		context.put("message", "Welcome to homepage!!!");
 	}
 }
