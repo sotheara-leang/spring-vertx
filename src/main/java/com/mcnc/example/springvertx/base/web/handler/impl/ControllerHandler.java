@@ -34,6 +34,9 @@ public class ControllerHandler implements RequestHandler {
 		for (String beanName : beanNames) {
 			Object verticle = appContext.getBean(beanName);
 			Class<?> clazz = verticle.getClass();
+
+			Controller controller = AnnotationUtils.findAnnotation(clazz, Controller.class);
+			String baseUrl = controller.value();
 			
 			ReflectionUtils.doWithMethods(clazz, new ReflectionUtils.MethodCallback() {
 
@@ -43,6 +46,23 @@ public class ControllerHandler implements RequestHandler {
 					if (requestMapping != null) {
 						String[] mappedPatterns = requestMapping.value();
 						
+						// Prepare URL
+						if (mappedPatterns.length == 0) {
+							if (!"".equals(baseUrl)) {
+								mappedPatterns = new String[]{baseUrl};
+							} else {
+								logger.error(String.format("Invalid request method %s of %s", method, clazz));
+								throw new RuntimeException(String.format("Invalid request method"));
+							}
+						} else {
+							for (String mappedPattern : mappedPatterns) {
+								if (!"".equals(baseUrl)) {
+									mappedPattern = baseUrl + mappedPattern;
+								}
+							}
+						}
+						
+						// Create route and bind route parameters with request method
 						if (mappedPatterns.length > 0) {
 							for (String mappedPattern : mappedPatterns) {
 								// URL mapping
@@ -83,7 +103,7 @@ public class ControllerHandler implements RequestHandler {
 											// View mapping
 											String view = requestMapping.view();
 											if (!"".equals(view)) {
-												routingContext.reroute(getViewName(view));
+												routingContext.reroute(getViewFullName(view));
 											}
 											
 										} catch (Exception e) {
@@ -99,7 +119,7 @@ public class ControllerHandler implements RequestHandler {
 											// View mapping
 											String view = requestMapping.view();
 											if (!"".equals(view)) {
-												routingContext.reroute(getViewName(view));
+												routingContext.reroute(getViewFullName(view));
 											}
 											
 										} catch (Exception e) {
@@ -121,7 +141,11 @@ public class ControllerHandler implements RequestHandler {
 	 * @param view
 	 * @return
 	 */
-	protected String getViewName(String view) {
-		return view + ".html";
+	protected String getViewFullName(String view) {
+		String fullName = view;
+		if (!fullName.endsWith(".html")) {
+			fullName = view + ".html";
+		}
+		return fullName;
 	}
 }

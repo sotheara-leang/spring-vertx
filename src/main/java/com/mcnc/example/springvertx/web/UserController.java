@@ -5,10 +5,10 @@ import com.mcnc.example.springvertx.base.web.annotation.RequestMapping;
 
 import io.vertx.ext.web.RoutingContext;
 
-@Controller
+@Controller("/users")
 public class UserController {
 
-	@RequestMapping(value = "/users")
+	@RequestMapping
 	public void getUser(RoutingContext context) {
 		 context.response()
 	        .setStatusCode(200)
