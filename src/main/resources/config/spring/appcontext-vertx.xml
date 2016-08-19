@@ -28,6 +28,17 @@
 		p:targetClass="io.vertx.ext.web.templ.ThymeleafTemplateEngine"
 		p:targetMethod="create" />
 		
+	<bean id="templateHandler" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
+		p:targetClass="io.vertx.ext.web.handler.TemplateHandler" p:targetMethod="create">
+		<property name="arguments">
+			<list>
+				<ref bean="templateEngine"/>
+				<value>webapp/views</value>
+				<value>text/html</value>
+			</list>
+		</property>
+	</bean>
+		
 	<bean id="webServerVerticle" class="com.mcnc.example.springvertx.base.web.WebServerVerticle" >
 		<property name="router" ref="router" />
 		<property name="handlers">
@@ -35,7 +46,8 @@
 				<bean class="com.mcnc.example.springvertx.base.web.handler.impl.ControllerHandler" />
 				<bean class="com.mcnc.example.springvertx.base.web.handler.impl.ErrrorRequestHandler" />
 				<bean class="com.mcnc.example.springvertx.base.web.handler.impl.StaticResourceHandler" />
-				<bean class="com.mcnc.example.springvertx.base.web.handler.impl.TemplateRequestHandler" />
+				<bean class="com.mcnc.example.springvertx.base.web.handler.impl.TemplateRequestHandler" 
+					p:handler-ref="templateHandler" />
 			</list>
 		</property>
 	</bean>

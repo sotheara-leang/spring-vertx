@@ -1,35 +1,29 @@
 package com.mcnc.example.springvertx.base.web.handler.impl;
 
-import org.springframework.beans.factory.InitializingBean;
-
-import com.mcnc.example.springvertx.base.common.AppContextHolder;
 import com.mcnc.example.springvertx.base.web.handler.RequestHandler;
 
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.templ.TemplateEngine;
 
 /**
  * 
  * @author sotheara.leang
  *
  */
-public class TemplateRequestHandler implements RequestHandler, InitializingBean {
+public class TemplateRequestHandler implements RequestHandler {
 
-	private TemplateEngine engine;
+	private TemplateHandler handler;
 	
 	@Override
 	public void handle(Router router) {
-		TemplateHandler templateHandler = TemplateHandler.create(
-				engine, 
-				AppContextHolder.getConfiguration("web.server.template"),
-				"text/html");
-		
-		router.getWithRegex(".+\\.html").handler(templateHandler);
+		router.getWithRegex(".+\\.html").handler(handler);
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		engine = AppContextHolder.getAppContext().getBean(TemplateEngine.class);
+	public TemplateHandler getHandler() {
+		return handler;
+	}
+
+	public void setHandler(TemplateHandler handler) {
+		this.handler = handler;
 	}
 }
