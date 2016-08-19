@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.mcnc.example.springvertx.base.common.AppContextHolder;
 import com.mcnc.example.springvertx.base.web.handler.RequestHandler;
@@ -18,30 +16,43 @@ import io.vertx.ext.web.Router;
  * @author sotheara.leang
  *
  */
-@Component
-public class WebServer extends AbstractVerticle {
+public class WebServerVerticle extends AbstractVerticle {
 	
-	private static final Logger logger = LoggerFactory.getLogger(WebServer.class);
+	private static final Logger logger = LoggerFactory.getLogger(WebServerVerticle.class);
 	
-	@Autowired
 	private Router router;
 	
-	@Autowired
-	private List<RequestHandler> requestHandlers;
+	private List<RequestHandler> handlers;
 	
 	@Override
 	public void start() throws Exception {
 		// Initialize request handlers
-		if (requestHandlers != null) {
-			for (RequestHandler requestHandler : requestHandlers) {
+		if (handlers != null) {
+			for (RequestHandler requestHandler : handlers) {
 				logger.debug(String.format(">>> Initialize request handler: %s <<<", requestHandler.getClass()));
 				requestHandler.handle(router);
 			}
 		}
-				
+		
+		// Create http server
 		vertx.createHttpServer()
 			 .requestHandler(router::accept)
 			 .listen(Integer.valueOf(AppContextHolder.getConfiguration("web.server.port")));
 	}
 
+	public Router getRouter() {
+		return router;
+	}
+
+	public void setRouter(Router router) {
+		this.router = router;
+	}
+
+	public List<RequestHandler> getHandlers() {
+		return handlers;
+	}
+
+	public void setHandlers(List<RequestHandler> handlers) {
+		this.handlers = handlers;
+	}
 }

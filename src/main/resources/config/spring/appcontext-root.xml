@@ -11,46 +11,11 @@
 
 	<context:annotation-config />
 
-	<util:properties id="config"
-		location="classpath:config/config.properties" />
+	<util:properties id="config" location="classpath:config/config.properties" />
 
-	<bean id="vertx"
-		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
-		p:targetClass="io.vertx.core.Vertx" p:targetMethod="vertx" />
-
-	<bean id="router"
-		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
-		p:targetClass="io.vertx.ext.web.Router" p:targetMethod="router">
-		<property name="arguments">
-			<list>
-				<ref bean="vertx" />
-			</list>
-		</property>
-	</bean>
-
-	<bean id="eventBus"
-		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
-		p:targetObject-ref="vertx" p:targetMethod="eventBus" />
-
-	<bean id="templateEngine"
-		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"
-		p:targetClass="io.vertx.ext.web.templ.ThymeleafTemplateEngine"
-		p:targetMethod="create" />
-
-	<bean id="appContextHolder"
-		class="com.mcnc.example.springvertx.base.common.AppContextHolder" />
-
-	<bean
-		class="com.mcnc.example.springvertx.base.web.handler.impl.ControllerHandler" />
-
-	<bean
-		class="com.mcnc.example.springvertx.base.web.handler.impl.ErrrorRequestHandler" />
-
-	<bean
-		class="com.mcnc.example.springvertx.base.web.handler.impl.StaticResourceHandler" />
-
-	<bean
-		class="com.mcnc.example.springvertx.base.web.handler.impl.TemplateRequestHandler" />
+	<bean id="appContextHolder" class="com.mcnc.example.springvertx.base.common.AppContextHolder" />
+		
+	<import resource="classpath:config/spring/appcontext-vertx.xml"/>
 
 	<context:component-scan base-package="com.mcnc.example.springvertx" />
 </beans>
